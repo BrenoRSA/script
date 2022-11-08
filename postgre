@@ -1,146 +1,82 @@
 
-CREATE TABLE public.cargos (
-                id_cargo VARCHAR(10) NOT NULL,
-                cargo VARCHAR(35) NOT NULL,
-                salario_minimo NUMERIC(8,2),
-                salario_maximo NUMERIC(8,2),
-                CONSTRAINT cargos_pk PRIMARY KEY (id_cargo)
-);
-COMMENT ON TABLE public.cargos IS 'salario minimo e maximo para cada cargo';
+create table paises (
+	id_pais char(2) primary key,
+	nome varchar(50) not null unique,
+	id_regiao integer not null 
+)
+
+create table localizacoes(
+	id_localizacao integer not null primary key,
+	endereco varchar(50),
+	cep varchar(12),
+	cidade varchar(50),
+	uf varchar(25),
+	id_pais char(2)
+)
+
+create table departamentos (
+	id_departamento integer not null primary key,
+	nome varchar(50) unique,
+	id_localizacao integer,
+	id_gerente integer
+)
+
+create table historico_cargos(
+	id_empregado integer not null,
+	data_inicial date not null primary key,
+	data_final date not null,
+	id_cargo varchar not null,
+	id_departamento integer
+)
+
+create table empregados(
+	id_empregado integer not null primary key,
+	nome varchar(75) not null,
+	email varchar (35) not null unique,
+	telefone varchar(20),
+	data_contratacao date not null,
+	id_cargo varchar(10) not null,
+	salario decimal(8,2),
+	comissao decimal(4,2),
+	id_departamento integer,
+	id_supervisor integer
+)
+
+create table cargos (
+	id_cargo varchar(35) not null primary key,
+	cargo varchar(35) not null unique,
+	salario_minimo decimal(8,2),
+	salario_maximo decimal(8,2)
+)
+
+alter table paises
+add constraint fk_id_regiao foreign key (id_regiao) references regioes (id_regiao);
+
+alter table localizacoes
+add constraint fk_id_pais foreign key (id_pais) references paises (id_pais);
+
+alter table departamentos
+add constraint fk_id_localizacao foreign key (id_localizacao) references localizacoes (id_localizacao);
+
+alter table empregados
+add constraint fk_id_cargo foreign key (id_cargo) references cargos (id_cargo);
+
+alter table empregados
+add constraint fk_id_departamento foreign key (id_departamento) references departamentos (id_departamento);
+
+alter table historico_cargos
+add constraint fk_id_cargo foreign key (id_cargo) references cargos (id_cargo);
+
+alter table historico_cargos
+add constraint fk_id_departamento foreign key (id_departamento) references departamentos (id_departamento);
 
 
-CREATE UNIQUE INDEX cargos_idx
- ON public.cargos
- ( cargo );
-
-CREATE TABLE public.regioes (
-                id_regiao INTEGER NOT NULL,
-                nome VARCHAR(25) NOT NULL,
-                CONSTRAINT regioes_pk PRIMARY KEY (id_regiao)
-);
 
 
-CREATE UNIQUE INDEX regioes_idx
- ON public.regioes
- ( nome );
-
-CREATE TABLE public.paises (
-                id_pais CHAR(2) NOT NULL,
-                nome VARCHAR(50) NOT NULL,
-                id_regiao INTEGER NOT NULL,
-                CONSTRAINT paises_pk PRIMARY KEY (id_pais)
-);
 
 
-CREATE UNIQUE INDEX paises_idx
- ON public.paises
- ( nome );
-
-CREATE TABLE public.localizacoes (
-                id_localizacao INTEGER NOT NULL,
-                endereco VARCHAR(50),
-                cep VARCHAR(12),
-                cidade VARCHAR(50),
-                uf VARCHAR(25),
-                id_pais CHAR(2) NOT NULL,
-                CONSTRAINT localizacoes_pk PRIMARY KEY (id_localizacao)
-);
-COMMENT ON TABLE public.localizacoes IS 'localizacoes da empresa';
 
 
-CREATE TABLE public.departamentos (
-                id_departamento INTEGER NOT NULL,
-                nome VARCHAR(50),
-                id_localizacao INTEGER NOT NULL,
-                id_gerente INTEGER,
-                CONSTRAINT departamentos_pk PRIMARY KEY (id_departamento)
-);
-COMMENT ON TABLE public.departamentos IS 'departamentos da empresa';
 
 
-CREATE UNIQUE INDEX departamentos_idx
- ON public.departamentos
- ( nome );
 
-CREATE TABLE public.empregados (
-                id_empregado INTEGER NOT NULL,
-                nome VARCHAR(75) NOT NULL,
-                email VARCHAR(35) NOT NULL,
-                telefone VARCHAR(20),
-                data_contratacao DATE NOT NULL,
-                id_cargo VARCHAR(10) NOT NULL,
-                salario NUMERIC(8,2),
-                comissao NUMERIC(4,2),
-                id_departamento INTEGER NOT NULL,
-                id_supervisor INTEGER,
-                CONSTRAINT empregados_pk PRIMARY KEY (id_empregado)
-);
-COMMENT ON TABLE public.empregados IS 'dados dos empregados';
-
-
-CREATE UNIQUE INDEX empregados_idx
- ON public.empregados
- ( email );
-
-CREATE TABLE public.historico_cargos (
-                id_empregado INTEGER NOT NULL,
-                data_inicial DATE NOT NULL,
-                data_final DATE NOT NULL,
-                id_cargo VARCHAR(10) NOT NULL,
-                id_departamento INTEGER NOT NULL,
-                CONSTRAINT historico_cargos_pk PRIMARY KEY (id_empregado, data_inicial)
-);
-
-
-ALTER TABLE public.empregados ADD CONSTRAINT cargos_empregados_fk
-FOREIGN KEY (id_cargo)
-REFERENCES public.cargos (id_cargo)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE public.historico_cargos ADD CONSTRAINT cargos_historico_cargos_fk
-FOREIGN KEY (id_cargo)
-REFERENCES public.cargos (id_cargo)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE public.paises ADD CONSTRAINT regioes_paises_fk
-FOREIGN KEY (id_regiao)
-REFERENCES public.regioes (id_regiao)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE public.localizacoes ADD CONSTRAINT paises_localizacoes_fk
-FOREIGN KEY (id_pais)
-REFERENCES public.paises (id_pais)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE public.departamentos ADD CONSTRAINT localizacoes_departamentos_fk
-FOREIGN KEY (id_localizacao)
-REFERENCES public.localizacoes (id_localizacao)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE public.historico_cargos ADD CONSTRAINT departamentos_historico_cargos_fk
-FOREIGN KEY (id_departamento)
-REFERENCES public.departamentos (id_departamento)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE public.empregados ADD CONSTRAINT departamentos_empregados_fk
-FOREIGN KEY (id_departamento)
-REFERENCES public.departamentos (id_departamento)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE public.historico_cargos ADD CONSTRAINT empregados_historico_cargos_fk
-FOREIGN KEY (id_empregado)
-REFERENCES public.empregados
